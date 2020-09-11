@@ -1,0 +1,12 @@
+{
+  "name": "photo-groove",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "elm make src/PhotoGroove.elm --output app.js"
+  },
+  "devDependencies": {
+    "elm-format": "^0.8.3"
+  }
+}
