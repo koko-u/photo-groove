@@ -63,7 +63,7 @@ type Msg
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \flags -> ( initialModel, Cmd.none )
+        { init = \flags -> ( initialModel, initialCmd )
         , view = view
         , update = update
         , subscriptions = \model -> Sub.none
@@ -75,6 +75,14 @@ initialModel =
     { status = Loading
     , chosenSize = Medium
     }
+
+
+initialCmd : Cmd Msg
+initialCmd =
+    Http.get
+        { url = "http://elm-in-action.com/photos/list"
+        , expect = Http.expectString GotPhotos
+        }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -99,22 +107,20 @@ update msg model =
         GotRandomPhoto photo ->
             ( { model | status = selectUrl photo.url model.status }, Cmd.none )
 
-        GotPhotos result ->
-            case result of
-                Ok response ->
-                    case String.split "," response of
-                        (firstUrl :: _) as urls ->
-                            let
-                                photos =
-                                    List.map Photo urls
-                            in
-                            ( { model | status = Loaded photos firstUrl }, Cmd.none )
+        GotPhotos (Ok response) ->
+            case String.split "," response of
+                (firstUrl :: _) as urls ->
+                    let
+                        photos =
+                            List.map Photo urls
+                    in
+                    ( { model | status = Loaded photos firstUrl }, Cmd.none )
 
-                        [] ->
-                            ( { model | status = Errored "0 photos found." }, Cmd.none )
+                [] ->
+                    ( { model | status = Errored "0 photos found." }, Cmd.none )
 
-                Err httpError ->
-                    ( { model | status = Errored "Server error!" }, Cmd.none )
+        GotPhotos (Err _) ->
+            ( { model | status = Errored "Server error!" }, Cmd.none )
 
 
 selectUrl : String -> Status -> Status
